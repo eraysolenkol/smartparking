@@ -10,9 +10,8 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 - [Tech Stack](#tech-stack-)
 - [Getting Started](#getting-started-)
 - [API Endpoints](#api-endpoints-)
-- [Database Schema](#database-schema-)
-- [Example JSON Payloads](#example-json-payloads)
-- [Future Improvements](#future-improvements)
+- [Database Schema](#database-schema-%EF%B8%8F)
+- [Future Improvements](#-future-improvements)
 
 ---
 
