@@ -15,6 +15,11 @@ public class Interceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return true;
+        }
+
         String requestApiKey = request.getHeader("X-API-Key");
         if (requestApiKey == null || !requestApiKey.equals(apiKey)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
