@@ -45,8 +45,7 @@ public class PaymentController {
 
     @PutMapping("/{id}/reservation/{reservationId}")
     public void updatePayment(@PathVariable Long id, @RequestBody PaymentRequest paymentRequest,
-            @PathVariable Long reservationId,
-            @RequestBody PaymentRequest reservationRequest) {
+            @PathVariable Long reservationId) {
         paymentService.updatePayment(id, paymentRequest, reservationId);
     }
 
