@@ -12,21 +12,30 @@ import com.example.smartparking.dto.PaymentRequest;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import com.example.smartparking.repository.UserRepository;
+import com.example.smartparking.model.User;
 
 @Service
 public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ParkingLocationService parkingLocationService;
     private final PaymentService paymentService;
+    private final UserRepository userRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
-            ParkingLocationService parkingLocationService, PaymentService paymentService) {
+            ParkingLocationService parkingLocationService, PaymentService paymentService,
+            UserRepository userRepository) {
         this.reservationRepository = reservationRepository;
         this.parkingLocationService = parkingLocationService;
         this.paymentService = paymentService;
+        this.userRepository = userRepository;
     }
 
     public Reservation createReservation(ReservationRequest request) {
+        User user = userRepository.findById(request.userId).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
         Reservation reservation = new Reservation(
                 request.userId,
                 request.parkingLocationId,
@@ -38,6 +47,10 @@ public class ReservationService {
     }
 
     public List<Reservation> getReservationsByUserId(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
         return reservationRepository.findByUserId(userId);
     }
 
@@ -50,6 +63,11 @@ public class ReservationService {
     }
 
     public Optional<Reservation> updateReservation(Long reservationId, ReservationRequest request) {
+        User user = userRepository.findById(request.userId).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
         return reservationRepository.findById(reservationId).map(e -> {
             e.setUserId(request.userId);
             e.setParkingLocationId(request.parkingLocationId);
@@ -82,6 +100,10 @@ public class ReservationService {
             throw new IllegalArgumentException("Parking location is full");
         }
 
+        User user = userRepository.findById(request.userId).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
         Reservation reservation = new Reservation();
         reservation.setUserId(request.userId);
         reservation.setParkingLocationId(request.parkingLocationId);
