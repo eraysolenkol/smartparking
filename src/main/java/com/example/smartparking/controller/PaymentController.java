@@ -54,4 +54,9 @@ public class PaymentController {
         paymentService.deletePayment(id);
     }
 
+    @PutMapping("/{id}/pay/{isCard}")
+    public Payment doPayment(@PathVariable Long id, @PathVariable Boolean isCard) {
+        return paymentService.doPayment(id, isCard);
+    }
+
 }
