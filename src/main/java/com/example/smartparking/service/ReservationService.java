@@ -8,6 +8,7 @@ import com.example.smartparking.repository.ReservationRepository;
 import java.util.List;
 import java.util.Optional;
 import com.example.smartparking.dto.ParkingLocationRequest;
+import com.example.smartparking.dto.PaymentRequest;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,11 +17,13 @@ import java.time.LocalDateTime;
 public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ParkingLocationService parkingLocationService;
+    private final PaymentService paymentService;
 
     public ReservationService(ReservationRepository reservationRepository,
-            ParkingLocationService parkingLocationService) {
+            ParkingLocationService parkingLocationService, PaymentService paymentService) {
         this.reservationRepository = reservationRepository;
         this.parkingLocationService = parkingLocationService;
+        this.paymentService = paymentService;
     }
 
     public Reservation createReservation(ReservationRequest request) {
@@ -162,6 +165,12 @@ public class ReservationService {
                             parkingLocation.getImageUrl(),
                             parkingLocation.getDescription()));
         }
+        PaymentRequest paymentRequest = new PaymentRequest();
+        paymentRequest.reservationId = reservation.getId();
+        paymentRequest.isCard = false;
+        paymentRequest.status = "waiting";
+        paymentRequest.amount = reservation.getTotalPrice();
+        paymentService.makePayment(paymentRequest);
         return reservation;
     }
 
