@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,9 +51,19 @@ public class ReservationController {
     }
 
     @PostMapping
-    public Reservation createReservation(@RequestBody ReservationRequest request) {
-        return reservationService.makeReservation(request);
+    public ResponseEntity<?> createReservation(@RequestBody ReservationRequest request) {
+        try {
+            Reservation reservation = reservationService.makeReservation(request);
+            return ResponseEntity.ok(reservation);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(errorResponse);
+        }
     }
+
 
     @PutMapping("/{id}")
     public Reservation updateReservation(@PathVariable Long id, @RequestBody ReservationRequest request) {
