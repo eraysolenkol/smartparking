@@ -7,6 +7,7 @@ import com.example.smartparking.model.Reservation;
 import com.example.smartparking.repository.ReservationRepository;
 import java.util.List;
 import java.util.Optional;
+import com.example.smartparking.dto.ParkingLocationRequest;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -72,8 +73,10 @@ public class ReservationService {
     public Reservation makeReservation(ReservationRequest request) {
         ParkingLocation parkingLocation = parkingLocationService
                 .getParkingLocationById(request.parkingLocationId);
-        if (parkingLocation == null || !parkingLocation.getIsAvailable()) {
+        if (parkingLocation == null) {
             throw new IllegalArgumentException("Parking location is not available");
+        } else if (parkingLocation.getAvailableSpots() <= 0) {
+            throw new IllegalArgumentException("Parking location is full");
         }
 
         Reservation reservation = new Reservation();
@@ -84,10 +87,18 @@ public class ReservationService {
         reservation.setTotalPrice(0);
         reservation.setEndTime(null);
 
-        // DONT FORGET TO CREATE A FUNCTION TO UPDATE SPOTS IN PARKING LOCATION
-        // parkingLocation.setAvailableSpots(parkingLocation.getAvailableSpots() - 1);
-        // parkingLocationService.updateParkingLocation(parkingLocation.getId(),
-        // new ParkingLocationRequest());
+        parkingLocation.setAvailableSpots(parkingLocation.getAvailableSpots() - 1);
+
+        parkingLocationService.updateParkingLocation(parkingLocation.getId(),
+                new ParkingLocationRequest(
+                        parkingLocation.getName(),
+                        parkingLocation.getAddress(),
+                        parkingLocation.getIsAvailable(),
+                        parkingLocation.getPricePerHour(),
+                        parkingLocation.getTotalSpots(),
+                        parkingLocation.getAvailableSpots(),
+                        parkingLocation.getImageUrl(),
+                        parkingLocation.getDescription()));
 
         return reservationRepository.save(reservation);
     }
@@ -132,11 +143,24 @@ public class ReservationService {
 
     public Reservation completeReservation(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
+        ParkingLocation parkingLocation = parkingLocationService
+                .getParkingLocationById(reservation.getParkingLocationId());
         if (reservation != null) {
             reservation.setTotalPrice(getCurrentPrice(reservationId));
             reservation.setStatus("completed");
             reservation.setEndTime(LocalDateTime.now().toString().split("\\.")[0]);
             reservationRepository.save(reservation);
+            parkingLocation.setAvailableSpots(parkingLocation.getAvailableSpots() + 1);
+            parkingLocationService.updateParkingLocation(parkingLocation.getId(),
+                    new ParkingLocationRequest(
+                            parkingLocation.getName(),
+                            parkingLocation.getAddress(),
+                            parkingLocation.getIsAvailable(),
+                            parkingLocation.getPricePerHour(),
+                            parkingLocation.getTotalSpots(),
+                            parkingLocation.getAvailableSpots(),
+                            parkingLocation.getImageUrl(),
+                            parkingLocation.getDescription()));
         }
         return reservation;
     }
