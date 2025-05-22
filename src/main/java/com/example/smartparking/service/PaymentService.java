@@ -64,4 +64,14 @@ public class PaymentService {
 
         paymentRepository.save(payment);
     }
+
+    public Payment doPayment(Long paymentId, Boolean isCard) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
+
+        payment.setIsCard(isCard);
+        payment.setStatus("Paid");
+
+        return paymentRepository.save(payment);
+    }
 }
