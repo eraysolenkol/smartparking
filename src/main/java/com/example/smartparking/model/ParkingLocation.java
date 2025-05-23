@@ -19,6 +19,8 @@ public class ParkingLocation {
     private double pricePerHour;
     private int totalSpots;
     private int availableSpots;
+    private String createdAt;
+    private String updatedAt;
 
     public ParkingLocation() {
     }
@@ -105,6 +107,22 @@ public class ParkingLocation {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 }

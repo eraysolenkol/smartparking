@@ -15,6 +15,8 @@ public class User {
 
     private String name;
     private Long citizenId;
+    private String createdAt;
+    private String updatedAt;
 
     public User() {
     }
@@ -46,6 +48,22 @@ public class User {
 
     public void setCitizenId(Long citizenId) {
         this.citizenId = citizenId;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 }

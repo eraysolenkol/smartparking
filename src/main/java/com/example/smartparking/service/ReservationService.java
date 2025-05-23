@@ -12,6 +12,8 @@ import com.example.smartparking.dto.PaymentRequest;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.example.smartparking.repository.UserRepository;
 import com.example.smartparking.model.User;
 
@@ -21,6 +23,7 @@ public class ReservationService {
     private final ParkingLocationService parkingLocationService;
     private final PaymentService paymentService;
     private final UserRepository userRepository;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     public ReservationService(ReservationRepository reservationRepository,
             ParkingLocationService parkingLocationService, PaymentService paymentService,
@@ -32,6 +35,7 @@ public class ReservationService {
     }
 
     public Reservation createReservation(ReservationRequest request) {
+        String now = LocalDateTime.now().format(formatter);
         User user = userRepository.findById(request.userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
@@ -43,6 +47,8 @@ public class ReservationService {
                 request.endTime,
                 request.totalPrice,
                 request.status);
+        reservation.setCreatedAt(now);
+        reservation.setUpdatedAt(now);
         return reservationRepository.save(reservation);
     }
 
@@ -63,6 +69,7 @@ public class ReservationService {
     }
 
     public Optional<Reservation> updateReservation(Long reservationId, ReservationRequest request) {
+        String now = LocalDateTime.now().format(formatter);
         User user = userRepository.findById(request.userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
@@ -75,6 +82,7 @@ public class ReservationService {
             e.setEndTime(request.endTime);
             e.setTotalPrice(request.totalPrice);
             e.setStatus(request.status);
+            e.setUpdatedAt(now);
             return reservationRepository.save(e);
         });
     }
@@ -92,6 +100,7 @@ public class ReservationService {
     }
 
     public Reservation makeReservation(ReservationRequest request) {
+        String now = LocalDateTime.now().format(formatter);
         ParkingLocation parkingLocation = parkingLocationService
                 .getParkingLocationById(request.parkingLocationId);
         if (parkingLocation == null) {
@@ -111,6 +120,8 @@ public class ReservationService {
         reservation.setStatus("confirmed");
         reservation.setTotalPrice(0);
         reservation.setEndTime(null);
+        reservation.setCreatedAt(now);
+        reservation.setUpdatedAt(now);
 
         parkingLocation.setAvailableSpots(parkingLocation.getAvailableSpots() - 1);
 
@@ -154,19 +165,28 @@ public class ReservationService {
     }
 
     public Reservation cancelReservation(Long reservationId) {
+        String now = LocalDateTime.now().format(formatter);
         Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
         double cost = getCurrentPrice(reservationId);
         if (reservation != null) {
             if (cost > 0) {
                 reservation.setTotalPrice(cost);
+                PaymentRequest paymentRequest = new PaymentRequest();
+                paymentRequest.reservationId = reservation.getId();
+                paymentRequest.isCard = false;
+                paymentRequest.status = "waiting";
+                paymentRequest.amount = cost;
+                paymentService.makePayment(paymentRequest);
             }
             reservation.setStatus("cancelled");
+            reservation.setUpdatedAt(now);
             reservationRepository.save(reservation);
         }
         return reservation;
     }
 
     public Reservation completeReservation(Long reservationId) {
+        String now = LocalDateTime.now().format(formatter);
         Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
         ParkingLocation parkingLocation = parkingLocationService
                 .getParkingLocationById(reservation.getParkingLocationId());
@@ -174,6 +194,7 @@ public class ReservationService {
             reservation.setTotalPrice(getCurrentPrice(reservationId));
             reservation.setStatus("completed");
             reservation.setEndTime(LocalDateTime.now().toString().split("\\.")[0]);
+            reservation.setUpdatedAt(now);
             reservationRepository.save(reservation);
             parkingLocation.setAvailableSpots(parkingLocation.getAvailableSpots() + 1);
             parkingLocationService.updateParkingLocation(parkingLocation.getId(),
