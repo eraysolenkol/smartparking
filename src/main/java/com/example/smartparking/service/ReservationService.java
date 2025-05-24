@@ -2,11 +2,11 @@ package com.example.smartparking.service;
 
 import org.springframework.stereotype.Service;
 import com.example.smartparking.dto.ReservationRequest;
+import com.example.smartparking.exception.UserNotFoundException;
 import com.example.smartparking.model.ParkingLocation;
 import com.example.smartparking.model.Reservation;
 import com.example.smartparking.repository.ReservationRepository;
 import java.util.List;
-import java.util.Optional;
 import com.example.smartparking.dto.ParkingLocationRequest;
 import com.example.smartparking.dto.PaymentRequest;
 
@@ -14,8 +14,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.example.smartparking.exception.ParkingLocationFullException;
+import com.example.smartparking.exception.ParkingLocationNotFoundException;
+import com.example.smartparking.exception.ReservationNotFoundException;
 import com.example.smartparking.repository.UserRepository;
-import com.example.smartparking.model.User;
 
 @Service
 public class ReservationService {
@@ -36,10 +38,8 @@ public class ReservationService {
 
     public Reservation createReservation(ReservationRequest request) {
         String now = LocalDateTime.now().format(formatter);
-        User user = userRepository.findById(request.userId).orElse(null);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
+        userRepository.findById(request.userId)
+                .orElseThrow(() -> new UserNotFoundException(request.userId));
         Reservation reservation = new Reservation(
                 request.userId,
                 request.parkingLocationId,
@@ -53,66 +53,78 @@ public class ReservationService {
     }
 
     public List<Reservation> getReservationsByUserId(Long userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
+        userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        List<Reservation> reservations = reservationRepository.findByUserId(userId);
+        if (reservations.isEmpty()) {
+            throw new ReservationNotFoundException();
         }
-        return reservationRepository.findByUserId(userId);
+        return reservations;
     }
 
     public List<Reservation> getReservationsByParkingLocationId(Long parkingLocationId) {
-        return reservationRepository.findByParkingLocationId(parkingLocationId);
+        List<Reservation> reservations = reservationRepository.findByParkingLocationId(parkingLocationId);
+        if (reservations.isEmpty()) {
+            throw new ReservationNotFoundException();
+        }
+        return reservations;
     }
 
     public Reservation getReservationById(Long reservationId) {
-        return reservationRepository.findById(reservationId).orElse(null);
+        return reservationRepository.findById(reservationId).orElseThrow(
+                () -> new ReservationNotFoundException(reservationId));
     }
 
-    public Optional<Reservation> updateReservation(Long reservationId, ReservationRequest request) {
+    public Reservation updateReservation(Long reservationId, ReservationRequest request) {
         String now = LocalDateTime.now().format(formatter);
-        User user = userRepository.findById(request.userId).orElse(null);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
+        userRepository.findById(request.userId)
+                .orElseThrow(() -> new UserNotFoundException(request.userId));
 
-        return reservationRepository.findById(reservationId).map(e -> {
-            e.setUserId(request.userId);
-            e.setParkingLocationId(request.parkingLocationId);
-            e.setStartTime(request.startTime);
-            e.setEndTime(request.endTime);
-            e.setTotalPrice(request.totalPrice);
-            e.setStatus(request.status);
-            e.setUpdatedAt(now);
-            return reservationRepository.save(e);
-        });
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+
+        reservation.setUserId(request.userId);
+        reservation.setParkingLocationId(request.parkingLocationId);
+        reservation.setStartTime(request.startTime);
+        reservation.setEndTime(request.endTime);
+        reservation.setTotalPrice(request.totalPrice);
+        reservation.setStatus(request.status);
+        reservation.setUpdatedAt(now);
+
+        return reservationRepository.save(reservation);
     }
 
     public Reservation deleteReservation(Long reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
-        if (reservation != null) {
-            reservationRepository.delete(reservation);
-        }
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
+                () -> new ReservationNotFoundException(reservationId));
+
+        reservationRepository.delete(reservation);
+
         return reservation;
     }
 
     public List<Reservation> getReservations() {
-        return reservationRepository.findAll();
+        List<Reservation> reservations = reservationRepository.findAll();
+        if (reservations.isEmpty()) {
+            throw new ReservationNotFoundException();
+        }
+        return reservations;
     }
 
     public Reservation makeReservation(ReservationRequest request) {
         String now = LocalDateTime.now().format(formatter);
-        ParkingLocation parkingLocation = parkingLocationService
-                .getParkingLocationById(request.parkingLocationId);
+        ParkingLocation parkingLocation = parkingLocationService.getParkingLocationById(request.parkingLocationId);
+
         if (parkingLocation == null) {
-            throw new IllegalArgumentException("Parking location is not available");
-        } else if (parkingLocation.getAvailableSpots() <= 0) {
-            throw new IllegalArgumentException("Parking location is full");
+            throw new ParkingLocationNotFoundException(request.parkingLocationId);
+        }
+        if (parkingLocation.getAvailableSpots() <= 0) {
+            throw new ParkingLocationFullException(request.parkingLocationId);
         }
 
-        User user = userRepository.findById(request.userId).orElse(null);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
+        userRepository.findById(request.userId)
+                .orElseThrow(() -> new UserNotFoundException(request.userId));
+
         Reservation reservation = new Reservation();
         reservation.setUserId(request.userId);
         reservation.setParkingLocationId(request.parkingLocationId);
@@ -141,7 +153,8 @@ public class ReservationService {
 
     public double getCurrentPrice(Long reservationId) {
         double cost = 0.0;
-        Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
+                () -> new ReservationNotFoundException(reservationId));
 
         if (reservation.getStatus().equals("cancelled") || reservation.getStatus().equals("completed")) {
             return reservation.getTotalPrice();
@@ -149,6 +162,10 @@ public class ReservationService {
 
         ParkingLocation parkingLocation = parkingLocationService
                 .getParkingLocationById(reservation.getParkingLocationId());
+
+        if (parkingLocation == null) {
+            throw new ParkingLocationNotFoundException(reservation.getParkingLocationId());
+        }
 
         LocalDateTime currentTime = LocalDateTime.now();
         if (reservation != null) {
@@ -166,7 +183,9 @@ public class ReservationService {
 
     public Reservation cancelReservation(Long reservationId) {
         String now = LocalDateTime.now().format(formatter);
-        Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
+                () -> new ReservationNotFoundException(reservationId));
+
         double cost = getCurrentPrice(reservationId);
         if (reservation != null) {
             if (cost > 0) {
@@ -187,9 +206,15 @@ public class ReservationService {
 
     public Reservation completeReservation(Long reservationId) {
         String now = LocalDateTime.now().format(formatter);
-        Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
+                () -> new ReservationNotFoundException(reservationId));
         ParkingLocation parkingLocation = parkingLocationService
                 .getParkingLocationById(reservation.getParkingLocationId());
+
+        if (parkingLocation == null) {
+            throw new ParkingLocationNotFoundException(reservation.getParkingLocationId());
+        }
+
         if (reservation != null) {
             reservation.setTotalPrice(getCurrentPrice(reservationId));
             reservation.setStatus("completed");
