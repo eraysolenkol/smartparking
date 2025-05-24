@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -24,39 +26,46 @@ public class PaymentController {
     }
 
     @GetMapping
-    public List<Payment> getPayments() {
-        return paymentService.getPayments();
+    public ResponseEntity<List<Payment>> getPayments() {
+        List<Payment> payments = paymentService.getPayments();
+        return ResponseEntity.ok(payments);
     }
 
     @GetMapping("/reservation/{reservationId}")
-    public List<Payment> getPaymentsByReservationId(@PathVariable Long reservationId) {
-        return paymentService.getPaymentsByReservationId(reservationId);
+    public ResponseEntity<List<Payment>> getPaymentsByReservationId(@PathVariable Long reservationId) {
+        List<Payment> payments = paymentService.getPaymentsByReservationId(reservationId);
+        return ResponseEntity.ok(payments);
     }
 
     @GetMapping("/{id}")
-    public Optional<Payment> getPaymentById(@PathVariable Long id) {
-        return paymentService.getPaymentById(id);
+    public ResponseEntity<Payment> getPaymentById(@PathVariable Long id) {
+        Payment payment = paymentService.getPaymentById(id);
+        return ResponseEntity.ok(payment);
     }
 
     @PostMapping
-    public Payment makePayment(@RequestBody PaymentRequest paymentRequest) {
-        return paymentService.makePayment(paymentRequest);
+    public ResponseEntity<Payment> makePayment(@RequestBody PaymentRequest paymentRequest) {
+        Payment payment = paymentService.makePayment(paymentRequest);
+        return new ResponseEntity<>(payment, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/reservation/{reservationId}")
-    public void updatePayment(@PathVariable Long id, @RequestBody PaymentRequest paymentRequest,
+    public ResponseEntity<Payment> updatePayment(@PathVariable Long id, @RequestBody PaymentRequest paymentRequest,
             @PathVariable Long reservationId) {
-        paymentService.updatePayment(id, paymentRequest, reservationId);
+        Payment payment = paymentService.updatePayment(id, paymentRequest, reservationId);
+        return ResponseEntity.ok(payment);
     }
 
     @DeleteMapping("/{id}")
-    public void deletePayment(@PathVariable Long id) {
-        paymentService.deletePayment(id);
+    public ResponseEntity<Optional<Payment>> deletePayment(@PathVariable Long id) {
+        Optional<Payment> payment = paymentService.deletePayment(id);
+        return ResponseEntity.ok(payment);
     }
 
     @PutMapping("/{id}/pay/{isCard}")
-    public Payment doPayment(@PathVariable Long id, @PathVariable Boolean isCard) {
-        return paymentService.doPayment(id, isCard);
+    public ResponseEntity<Payment> doPayment(@PathVariable Long id, @PathVariable Boolean isCard) {
+        Payment payment = paymentService.doPayment(id, isCard);
+        return ResponseEntity.ok(payment);
     }
 
 }

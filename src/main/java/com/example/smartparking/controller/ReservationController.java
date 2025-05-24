@@ -14,11 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -31,78 +27,65 @@ public class ReservationController {
     }
 
     @GetMapping
-    public List<Reservation> getReservations() {
-        return reservationService.getReservations();
+    public ResponseEntity<List<Reservation>> getReservations() {
+        List<Reservation> reservations = reservationService.getReservations();
+        return ResponseEntity.ok(reservations);
     }
 
     @GetMapping("/user/{id}")
-    public List<Reservation> getReservationByUserId(@PathVariable Long id) {
-        return reservationService.getReservationsByUserId(id);
+    public ResponseEntity<List<Reservation>> getReservationByUserId(@PathVariable Long id) {
+        List<Reservation> reservations = reservationService.getReservationsByUserId(id);
+        return ResponseEntity.ok(reservations);
     }
 
     @GetMapping("/{id}")
-    public Reservation getReservationById(@PathVariable Long id) {
-        return reservationService.getReservationById(id);
+    public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
+        Reservation reservation = reservationService.getReservationById(id);
+        return ResponseEntity.ok(reservation);
     }
 
     @GetMapping("/parking/{id}")
-    public List<Reservation> getReservationByParkingLocationId(@PathVariable Long id) {
-        return reservationService.getReservationsByParkingLocationId(id);
+    public ResponseEntity<List<Reservation>> getReservationByParkingLocationId(@PathVariable Long id) {
+        List<Reservation> reservations = reservationService.getReservationsByParkingLocationId(id);
+        return ResponseEntity.ok(reservations);
     }
 
     @PostMapping
-    public ResponseEntity<?> createReservation(@RequestBody ReservationRequest request) {
-        try {
-            Reservation reservation = reservationService.makeReservation(request);
-            return ResponseEntity.ok(reservation);
-        } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(errorResponse);
-        }
+    public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) {
+        Reservation reservation = reservationService.makeReservation(request);
+        return new ResponseEntity<>(reservation, HttpStatus.CREATED);
     }
 
-
     @PutMapping("/{id}")
-    public Reservation updateReservation(@PathVariable Long id, @RequestBody ReservationRequest request) {
-        Reservation reservation = reservationService.updateReservation(id, request).orElse(null);
-        if (reservation != null) {
-            reservationService.updateReservation(id, request);
-            return reservation;
-        } else {
-            return null;
-        }
+    public ResponseEntity<Reservation> updateReservation(@PathVariable Long id,
+            @RequestBody ReservationRequest request) {
+        Reservation reservation = reservationService.updateReservation(id, request);
+        return ResponseEntity.ok(reservation);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReservation(@PathVariable Long id) {
-        reservationService.deleteReservation(id);
+    public ResponseEntity<Reservation> deleteReservation(@PathVariable Long id) {
+        Reservation reservation = reservationService.deleteReservation(id);
+        return ResponseEntity.ok(reservation);
     }
 
     @GetMapping("/price/{id}")
-    public ResponseEntity<?> getReservationPrice(@PathVariable Long id) {
-        Reservation reservation = reservationService.getReservationById(id);
-        if (reservation != null) {
-            double price = reservationService.getCurrentPrice(id);
-            return ResponseEntity.ok(new PriceResponse(id, price));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Reservation not found"));
-        }
+    public ResponseEntity<PriceResponse> getReservationPrice(@PathVariable Long id) {
+        reservationService.getReservationById(id);
+        double price = reservationService.getCurrentPrice(id);
+        return ResponseEntity.ok(new PriceResponse(id, price));
     }
 
     @PutMapping("/{id}/cancel")
-    public Optional<Reservation> cancelReservation(@PathVariable Long id) {
+    public ResponseEntity<Reservation> cancelReservation(@PathVariable Long id) {
         Reservation reservation = reservationService.cancelReservation(id);
-        return Optional.ofNullable(reservation);
+        return ResponseEntity.ok(reservation);
     }
 
     @PutMapping("/{id}/complete")
-    public Optional<Reservation> completeReservation(@PathVariable Long id) {
+    public ResponseEntity<Reservation> completeReservation(@PathVariable Long id) {
         Reservation reservation = reservationService.completeReservation(id);
-        return Optional.ofNullable(reservation);
+        return ResponseEntity.ok(reservation);
     }
 
 }

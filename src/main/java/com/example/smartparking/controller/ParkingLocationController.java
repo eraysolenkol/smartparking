@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import java.util.Optional;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,36 +27,34 @@ public class ParkingLocationController {
     }
 
     @GetMapping
-    public List<ParkingLocation> getParkingLocations() {
-        return parkingLocationService.getParkingLocations();
+    public ResponseEntity<List<ParkingLocation>> getParkingLocations() {
+        List<ParkingLocation> parkingLocations = parkingLocationService.getParkingLocations();
+        return ResponseEntity.ok(parkingLocations);
     }
 
     @GetMapping("/{id}")
-    public ParkingLocation getParkingLocationById(@PathVariable Long id) {
-        return parkingLocationService.getParkingLocationById(id);
+    public ResponseEntity<ParkingLocation> getParkingLocationById(@PathVariable Long id) {
+        ParkingLocation parkingLocation = parkingLocationService.getParkingLocationById(id);
+        return ResponseEntity.ok(parkingLocation);
     }
 
     @PostMapping
-    public ParkingLocation createParkingLocation(@RequestBody ParkingLocationRequest request) {
-        return parkingLocationService.createParkingLocation(request);
+    public ResponseEntity<ParkingLocation> createParkingLocation(@RequestBody ParkingLocationRequest request) {
+        ParkingLocation parkingLocation = parkingLocationService.createParkingLocation(request);
+        return new ResponseEntity<>(parkingLocation, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ParkingLocation updateParkingLocation(@PathVariable Long id, @RequestBody ParkingLocationRequest request) {
-        Optional<ParkingLocation> updatedParkingLocation = parkingLocationService.updateParkingLocation(id, request);
-        if (updatedParkingLocation.isPresent()) {
-            return updatedParkingLocation.get();
-        } else {
-            return null;
-        }
+    public ResponseEntity<ParkingLocation> updateParkingLocation(@PathVariable Long id,
+            @RequestBody ParkingLocationRequest request) {
+        ParkingLocation parkingLocation = parkingLocationService.updateParkingLocation(id, request);
+        return ResponseEntity.ok(parkingLocation);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteParkingLocation(@PathVariable Long id) {
-        ParkingLocation parkingLocation = parkingLocationService.getParkingLocationById(id);
-        if (parkingLocation != null) {
-            parkingLocationService.deleteParkingLocation(id);
-        }
+    public ResponseEntity<ParkingLocation> deleteParkingLocation(@PathVariable Long id) {
+        ParkingLocation parkingLocation = parkingLocationService.deleteParkingLocation(id);
+        return ResponseEntity.ok(parkingLocation);
     }
 
 }
