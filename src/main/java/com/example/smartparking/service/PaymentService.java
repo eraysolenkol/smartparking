@@ -2,6 +2,8 @@ package com.example.smartparking.service;
 
 import org.springframework.stereotype.Service;
 import com.example.smartparking.dto.PaymentRequest;
+import com.example.smartparking.exception.PaymentNotFoundException;
+import com.example.smartparking.exception.ReservationNotFoundException;
 import com.example.smartparking.model.Payment;
 import com.example.smartparking.repository.PaymentRepository;
 import com.example.smartparking.repository.ReservationRepository;
@@ -28,7 +30,7 @@ public class PaymentService {
         String now = LocalDateTime.now().format(formatter);
         Payment payment = new Payment();
         Reservation reservation = reservationRepository.findById(paymentRequest.reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                .orElseThrow(() -> new ReservationNotFoundException(paymentRequest.reservationId));
 
         payment.setReservation(reservation);
         payment.setAmount(reservation.getTotalPrice());
@@ -42,28 +44,35 @@ public class PaymentService {
 
     public List<Payment> getPaymentsByReservationId(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
         return paymentRepository.findByReservation(reservation);
     }
 
-    public Optional<Payment> getPaymentById(Long paymentId) {
-        return paymentRepository.findById(paymentId);
+    public Payment getPaymentById(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+        return payment;
     }
 
     public List<Payment> getPayments() {
         return paymentRepository.findAll();
     }
 
-    public void deletePayment(Long paymentId) {
+    public Optional<Payment> deletePayment(Long paymentId) {
+        if (!paymentRepository.existsById(paymentId)) {
+            throw new PaymentNotFoundException(paymentId);
+        }
+        Optional<Payment> payment = paymentRepository.findById(paymentId);
         paymentRepository.deleteById(paymentId);
+        return payment;
     }
 
-    public void updatePayment(Long paymentId, PaymentRequest paymentRequest, Long reservationId) {
+    public Payment updatePayment(Long paymentId, PaymentRequest paymentRequest, Long reservationId) {
         String now = LocalDateTime.now().format(formatter);
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId));
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
 
         payment.setReservation(reservation);
         payment.setAmount(paymentRequest.amount);
@@ -72,17 +81,19 @@ public class PaymentService {
         payment.setUpdatedAt(now);
 
         paymentRepository.save(payment);
+        return payment;
     }
 
     public Payment doPayment(Long paymentId, Boolean isCard) {
         String now = LocalDateTime.now().format(formatter);
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId));
 
         payment.setIsCard(isCard);
         payment.setStatus("Paid");
         payment.setUpdatedAt(now);
-
-        return paymentRepository.save(payment);
+        paymentRepository.save(payment);
+        return payment;
     }
+
 }
