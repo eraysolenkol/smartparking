@@ -88,4 +88,10 @@ public class ReservationController {
         return ResponseEntity.ok(reservation);
     }
 
+    @GetMapping("/daily-reservations")
+    public ResponseEntity<List<Reservation>> getDailyReservations() {
+        List<Reservation> dailyReservations = reservationService.getDailyReservations();
+        return ResponseEntity.ok(dailyReservations);
+    }
+
 }

@@ -12,4 +12,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByParkingLocationId(Long parkingLocationId);
 
+    List<Reservation> findByCreatedAtStartingWith(String createdAt);
+
 }

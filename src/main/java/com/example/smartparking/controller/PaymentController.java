@@ -68,4 +68,10 @@ public class PaymentController {
         return ResponseEntity.ok(payment);
     }
 
+    @GetMapping("/daily-payments")
+    public ResponseEntity<List<Payment>> getDailyPayments() {
+        List<Payment> dailyPayments = paymentService.getDailyPayments();
+        return ResponseEntity.ok(dailyPayments);
+    }
+
 }
