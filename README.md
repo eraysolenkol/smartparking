@@ -6,16 +6,15 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 
 ## 📚 Table of Contents
 
-- [Features](#features-)
-- [Tech Stack](#tech-stack-)
-- [Getting Started](#getting-started-)
-- [API Endpoints](#api-endpoints-)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [API Endpoints](#-api-endpoints)
 - [Database Schema](#database-schema-%EF%B8%8F)
-- [Future Improvements](#-future-improvements)
 
 ---
 
-## Features ✨
+## ✨Features 
 
 - Create, update, and delete parking locations
 - Make reservations with time-based pricing
@@ -25,11 +24,12 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 
 ---
 
-## Tech Stack 🧰
+## 🧰 Tech Stack 
 
 - Java 17
 - Spring Boot
 - Spring Data JPA
+- Lombok
 - PostgreSQL
 - Hibernate
 - Maven
@@ -37,7 +37,7 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 
 ---
 
-## Getting Started 🚀
+## 🚀 Getting Started 
 
 ### Prerequisites
 
@@ -49,7 +49,7 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/smart-parking.git
+   git clone https://github.com/eraysolenkol/smartparking.git
    cd smart-parking
 2. **Configure your database:**
    Edit `src/main/resources/application.properties`:
@@ -84,32 +84,70 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 
 ## 🧪 API Endpoints
 
-### 🅿️ Parking Location
+### 🅿️ Parking Locations
 
-| Method | Endpoint                             | Description                        |
-|--------|--------------------------------------|------------------------------------|
-| GET    | `/api/parking-locations`             | Get all parking locations          |
-| GET    | `/api/parking-locations/{id}`        | Get parking location by ID         |
-| POST   | `/api/parking-locations`             | Create a new parking location      |
-| PUT    | `/api/parking-locations/{id}`        | Update parking location            |
-| DELETE | `/api/parking-locations/{id}`        | Delete parking location            |
+| Method | Endpoint                     | Description                    |
+|--------|------------------------------|--------------------------------|
+| GET    | `/api/parking-locations`      | Get all parking locations      |
+| GET    | `/api/parking-locations/{id}` | Get parking location by ID     |
+| POST   | `/api/parking-locations`      | Create a new parking location  |
+| PUT    | `/api/parking-locations/{id}` | Update parking location by ID  |
+| DELETE | `/api/parking-locations/{id}` | Delete parking location by ID  |
 
 ---
 
-### 📅 Reservation
+### 📅 Reservations
 
-| Method | Endpoint                                  | Description                                      |
-|--------|-------------------------------------------|--------------------------------------------------|
-| GET    | `/api/reservations`                       | Get all reservations                            |
-| GET    | `/api/reservations/{id}`                  | Get reservation by ID                           |
-| GET    | `/api/reservations/user/{id}`             | Get reservations by User ID                     |
-| GET    | `/api/reservations/parking/{id}`          | Get reservations by Parking Location ID         |
-| POST   | `/api/reservations`                       | Create a new reservation                        |
-| PUT    | `/api/reservations/{id}`                  | Update reservation                              |
-| DELETE | `/api/reservations/{id}`                  | Delete reservation                              |
-| GET    | `/api/reservations/price/{id}`            | Get current cost of an ongoing reservation      |
-| PUT    | `/api/reservations/{id}/cancel`           | Cancel reservation                              |
-| PUT    | `/api/reservations/{id}/complete`         | Mark reservation as completed                   |
+| Method | Endpoint                             | Description                                 |
+|--------|------------------------------------|---------------------------------------------|
+| GET    | `/api/reservations`                 | Get all reservations                       |
+| GET    | `/api/reservations/{id}`            | Get reservation by ID                      |
+| GET    | `/api/reservations/user/{id}`       | Get reservations by user ID                |
+| GET    | `/api/reservations/parking/{id}`    | Get reservations by parking location ID   |
+| POST   | `/api/reservations`                 | Create a new reservation                   |
+| PUT    | `/api/reservations/{id}`            | Update reservation by ID                   |
+| DELETE | `/api/reservations/{id}`            | Delete reservation by ID                   |
+| GET    | `/api/reservations/price/{id}`      | Get current cost of an ongoing reservation|
+| PUT    | `/api/reservations/{id}/cancel`     | Cancel reservation by ID                   |
+| PUT    | `/api/reservations/{id}/complete`   | Mark reservation as completed              |
+| GET    | `/api/reservations/daily-reservations` | Get all reservations for the current day  |
+
+---
+
+### 💳 Payments
+
+| Method | Endpoint                          | Description                                   |
+|--------|----------------------------------|-----------------------------------------------|
+| GET    | `/api/payments`                  | Get all payments                             |
+| GET    | `/api/payments/{id}`             | Get payment by ID                            |
+| GET    | `/api/payments/reservation/{id}` | Get payments by reservation ID               |
+| POST   | `/api/payments`                  | Make a payment                              |
+| PUT    | `/api/payments/{id}/reservation/{reservationId}` | Update payment by payment and reservation IDs |
+| DELETE | `/api/payments/{id}`             | Delete payment by ID                         |
+| PUT    | `/api/payments/{id}/pay/{isCard}` | Perform payment by payment ID |
+| GET    | `/api/payments/daily-payments`  | Get payments made today                      |
+
+---
+
+### 👤 Users
+
+| Method | Endpoint                 | Description                       |
+|--------|--------------------------|-----------------------------------|
+| GET    | `/api/users`             | Get all users                    |
+| GET    | `/api/users/{id}`        | Get user by ID                  |
+| GET    | `/api/users/citizen/{citizenId}` | Get user by citizen ID  |
+| GET    | `/api/users/name/{name}` | Get users by name               |
+| POST   | `/api/users`             | Create a new user               |
+| PUT    | `/api/users/{id}`        | Update user by ID               |
+| DELETE | `/api/users/{id}`        | Delete user by ID               |
+
+---
+
+### 📜 Logs
+
+| Method | Endpoint     | Description          |
+|--------|--------------|----------------------|
+| GET    | `/api/logs`  | Get all the logs |
 
 ---
 
@@ -125,24 +163,63 @@ Smart Parking is a RESTful web service built with Spring Boot that allows users 
 | image_url        | String   | Photo or logo URL            |
 | description      | String   | Parking description          |
 | is_available     | Boolean  | Availability status          |
-| price_per_hour   | Double   | Hourly rate                  |
+| price_per_hour   | Double   | Hourly cost                 |
 | total_spots      | Integer  | Total number of spots        |
 | available_spots  | Integer  | Currently free spots         |
+| created_at       | String   | Creation timestamp |
+| updated_at       | String   | Last update timestamp |
+
+---
 
 ### `reservation`
 
 | Field               | Type     | Description                                 |
 |---------------------|----------|---------------------------------------------|
 | id                  | Long     | Primary key                                 |
-| user_id             | Long     | ID of the user who made the reservation     |
-| parking_location_id | Long     | ID of the reserved parking location         |
-| start_time          | String   | Start time of the reservation (ISO format)  |
-| end_time            | String   | End time of the reservation (nullable)      |
+| user_id             | Long     | ID of user    |
+| parking_location_id | Long     | ID of parking location         |
+| start_time          | String   | Start time of the reservation   |
+| end_time            | String   | End time of the reservation      |
 | total_price         | Double   | Calculated price based on time and rate     |
-| status              | String   | Reservation status (`confirmed`, `cancelled`, `completed`) |
+| status              | String   | Reservation status  |
+| created_at          | String   | Creation timestamp            |
+| updated_at          | String   | Last update timestamp             |
 
-## 🛠 Future Improvements
+---
 
-- Change available slots in parking locations when a reservation made
+### `payment`
 
-- Implement payment and user
+| Field               | Type     | Description                              |
+|---------------------|----------|------------------------------------------|
+| id                  | Long     | Primary key                            |
+| reservation_id      | Long     | Foreign key to reservation             |
+| amount              | Double   | Payment amount                         |
+| is_card             | Boolean  | Payment method          |
+| status              | String   | Payment status                        |
+| created_at          | String   | Creation timestamp           |
+| updated_at          | String   | Last update timestamp         |
+
+---
+
+### `parking_log`
+
+| Field          | Type   | Description                          |
+|----------------|--------|------------------------------------|
+| id             | Long   | Primary key                        |
+| action         | String | Action performed     |
+| ip_address     | String | IP address of the requester        |
+| entity         | String | Entity affected |
+| api_endpoint   | String | API endpoint called                |
+| created_at     | String | Timestamp of the log entry          |
+
+---
+
+### `parkinguser`
+
+| Field          | Type   | Description                          |
+|----------------|--------|------------------------------------|
+| id             | Long   | Primary key                        |
+| name           | String | User's full name                   |
+| citizen_id     | Long   | Unique citizen number |
+| created_at     | String | Creation timestamp       |
+| updated_at     | String | Last update timestamp    |
