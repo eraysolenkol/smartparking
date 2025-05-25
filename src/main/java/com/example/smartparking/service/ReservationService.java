@@ -242,4 +242,12 @@ public class ReservationService {
         return reservation;
     }
 
+    public List<Reservation> getDailyReservations() {
+        String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        List<Reservation> reservations = reservationRepository.findByCreatedAtStartingWith(today);
+        if (reservations.isEmpty()) {
+            throw new ReservationNotFoundException("No reservations found for today.");
+        }
+        return reservations;
+    }
 }

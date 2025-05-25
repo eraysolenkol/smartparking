@@ -96,4 +96,13 @@ public class PaymentService {
         return payment;
     }
 
+    public List<Payment> getDailyPayments() {
+        String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        List<Payment> payments = paymentRepository.findByCreatedAtStartingWith(today);
+        if (payments.isEmpty()) {
+            throw new PaymentNotFoundException();
+        }
+        return payments;
+    }
+
 }
