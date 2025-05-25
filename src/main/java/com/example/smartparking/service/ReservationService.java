@@ -185,6 +185,8 @@ public class ReservationService {
         String now = LocalDateTime.now().format(formatter);
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
                 () -> new ReservationNotFoundException(reservationId));
+        ParkingLocation parkingLocation = parkingLocationService
+                .getParkingLocationById(reservation.getParkingLocationId());
 
         double cost = getCurrentPrice(reservationId);
         if (reservation != null) {
@@ -197,6 +199,18 @@ public class ReservationService {
                 paymentRequest.amount = cost;
                 paymentService.makePayment(paymentRequest);
             }
+            parkingLocation.setAvailableSpots(parkingLocation.getAvailableSpots() + 1);
+            parkingLocationService.updateParkingLocation(parkingLocation.getId(),
+                    new ParkingLocationRequest(
+                            parkingLocation.getName(),
+                            parkingLocation.getAddress(),
+                            parkingLocation.getIsAvailable(),
+                            parkingLocation.getPricePerHour(),
+                            parkingLocation.getTotalSpots(),
+                            parkingLocation.getAvailableSpots(),
+                            parkingLocation.getImageUrl(),
+                            parkingLocation.getDescription()));
+
             reservation.setStatus("cancelled");
             reservation.setUpdatedAt(now);
             reservationRepository.save(reservation);
