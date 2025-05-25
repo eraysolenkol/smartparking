@@ -2,6 +2,8 @@
 
 Smart Parking is a RESTful web service built with Spring Boot that allows users to manage parking locations, payments and reservations.
 
+Live Website: https://smartparking-pl3c.onrender.com/swagger-ui/index.html#/ 
+(Free Hosting, if website didn't loaded for 15 minutes, it saves on sleeping mode)
 ---
 
 ## 📚 Table of Contents
