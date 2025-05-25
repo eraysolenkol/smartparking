@@ -16,6 +16,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findById(Long id);
 
-    List<Payment> findByCreatedAtStartingWith(String createdAtPrefix);
+    List<Payment> findByCreatedAtStartingWith(String createdAt);
 
 }
